@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "sequence": 1,
+  "game": {
+    "build": "42.mock",
+    "world": "Mock Debug World"
+  },
+  "writtenAt": 1780169725586,
+  "players": [
+    {
+      "id": "local-0",
+      "name": "Mock Player",
+      "x": 10640,
+      "y": 9565,
+      "z": 0,
+      "direction": "SE"
+    }
+  ],
+  "markers": [
+    {
+      "id": "safehouse-muldraugh",
+      "kind": "texture",
+      "symbolId": "house",
+      "label": "Safehouse",
+      "x": 10620,
+      "y": 9485,
+      "z": 0,
+      "color": "#33d17a",
+      "visible": true
+    },
+    {
+      "id": "vehicle-cache",
+      "kind": "texture",
+      "symbolId": "car",
+      "label": "Vehicle Cache",
+      "x": 10885,
+      "y": 10020,
+      "z": 0,
+      "color": "#62a0ea",
+      "visible": true
+    },
+    {
+      "id": "danger-zone",
+      "kind": "texture",
+      "symbolId": "warning",
+      "label": "Heavy Horde",
+      "x": 10490,
+      "y": 9820,
+      "z": 0,
+      "color": "#ff5c5c",
+      "visible": true
+    },
+    {
+      "id": "loot-note",
+      "kind": "text",
+      "symbolId": null,
+      "label": "Hardware loot",
+      "x": 10750,
+      "y": 9400,
+      "z": 0,
+      "color": "#f6d32d",
+      "visible": true
+    }
+  ]
+}

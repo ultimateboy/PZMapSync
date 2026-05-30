@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "PZMapSync",
+  "version": "0.1.0",
+  "description": "Overlay Project Zomboid player and marker sync data on b42map.com.",
+  "permissions": [
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://b42map.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://b42map.com/*"
+      ],
+      "js": [
+        "src/content/content-script.js"
+      ],
+      "css": [
+        "src/content/overlay.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/content/page-bridge.js",
+        "public/fixtures/mock-snapshot.json"
+      ],
+      "matches": [
+        "https://b42map.com/*"
+      ]
+    }
+  ]
+}

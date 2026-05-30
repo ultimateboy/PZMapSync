@@ -1,0 +1,83 @@
+#pzmapsync-overlay-root {
+  position: absolute;
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
+  contain: layout style;
+  font-family: Arial, sans-serif;
+}
+
+#pzmapsync-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1201;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(12, 14, 18, 0.82);
+  color: #f4f4f4;
+  font-size: 12px;
+  line-height: 1.2;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+#pzmapsync-status[data-error="true"] {
+  border-color: rgba(255, 92, 92, 0.8);
+  color: #ffd6d6;
+}
+
+.pzmapsync-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.pzmapsync-pin-dot {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: var(--pzmapsync-color);
+  color: #101114;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+  translate: -50% -50%;
+}
+
+.pzmapsync-player .pzmapsync-pin-dot {
+  width: 28px;
+  height: 28px;
+  border-color: #111111;
+  background: #ff7b3d;
+  color: #111111;
+}
+
+.pzmapsync-pin-label {
+  max-width: 160px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: rgba(10, 10, 10, 0.72);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px #000000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  translate: -8px -50%;
+}
+
+.pzmapsync-marker .pzmapsync-pin-label {
+  font-size: 11px;
+}

@@ -1,0 +1,3 @@
+name=PZMapSync
+id=PZMapSync
+description=Exports local Project Zomboid player map sync data for the PZMapSync browser overlay.
