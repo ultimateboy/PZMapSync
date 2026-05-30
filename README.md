@@ -2,6 +2,8 @@
 
 PZMapSync overlays your live Project Zomboid Build 42 position and map markers on [b42map.com](https://b42map.com/).
 
+PZMapSync is an unofficial community project. It works with b42map.com and Project Zomboid data, but it is not affiliated with, endorsed by, or directly associated with b42map.com, The Indie Stone, or Project Zomboid.
+
 It has three pieces:
 
 - a Project Zomboid mod that writes `PZMapSync_pzmapsync.json`
