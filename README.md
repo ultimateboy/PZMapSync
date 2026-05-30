@@ -36,13 +36,75 @@ C:\Users\<you>\Zomboid\Lua\PZMapSync_pzmapsync.json
 
 ### 2. Register the browser native host
 
-From the repository root, run:
+On Windows, from the repository root, run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\install-native-host.ps1
 ```
 
 This registers `com.pzmapsync.host` for Chrome and Edge so the extension can read the Zomboid JSON file.
+
+On macOS or Linux, native host registration is a browser manifest file. From the repository root, set the host executable path and install the manifest for your browser:
+
+```sh
+HOST_NAME="com.pzmapsync.host"
+EXTENSION_ID="eiocboniaogecljgkoembpgpabaogfoa"
+REPO_ROOT="$(pwd)"
+HOST_EXEC="$REPO_ROOT/native-host/pzmapsync-native-host"
+HOST_MANIFEST="$REPO_ROOT/native-host/$HOST_NAME.json"
+
+mkdir -p "$REPO_ROOT/native-host"
+cat > "$HOST_MANIFEST" <<EOF
+{
+  "name": "$HOST_NAME",
+  "description": "PZMapSync native messaging host",
+  "path": "$HOST_EXEC",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://$EXTENSION_ID/"
+  ]
+}
+EOF
+```
+
+Then copy that manifest to the browser-specific native messaging directory.
+
+macOS Chrome:
+
+```sh
+mkdir -p "$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
+cp "$HOST_MANIFEST" "$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts/$HOST_NAME.json"
+```
+
+macOS Edge:
+
+```sh
+mkdir -p "$HOME/Library/Application Support/Microsoft Edge/NativeMessagingHosts"
+cp "$HOST_MANIFEST" "$HOME/Library/Application Support/Microsoft Edge/NativeMessagingHosts/$HOST_NAME.json"
+```
+
+Linux Chrome:
+
+```sh
+mkdir -p "$HOME/.config/google-chrome/NativeMessagingHosts"
+cp "$HOST_MANIFEST" "$HOME/.config/google-chrome/NativeMessagingHosts/$HOST_NAME.json"
+```
+
+Linux Chromium:
+
+```sh
+mkdir -p "$HOME/.config/chromium/NativeMessagingHosts"
+cp "$HOST_MANIFEST" "$HOME/.config/chromium/NativeMessagingHosts/$HOST_NAME.json"
+```
+
+Linux Edge:
+
+```sh
+mkdir -p "$HOME/.config/microsoft-edge/NativeMessagingHosts"
+cp "$HOST_MANIFEST" "$HOME/.config/microsoft-edge/NativeMessagingHosts/$HOST_NAME.json"
+```
+
+`HOST_EXEC` must point to an executable native host wrapper on your machine. If your wrapper has a different filename, update `HOST_EXEC` before writing the manifest.
 
 ### 3. Load the extension
 
