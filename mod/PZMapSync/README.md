@@ -1,8 +1,6 @@
 # PZMapSync Project Zomboid Mod
 
-PZMapSync exports local Project Zomboid player position data to a JSON file for the PZMapSync browser map overlay.
-
-This is an early proof-of-concept mod. It currently exports the local player's position and writes a marker API probe so we can confirm what vanilla map-marker data Project Zomboid exposes to Lua.
+PZMapSync exports local Project Zomboid player position and map marker data to a JSON file for the PZMapSync browser map overlay.
 
 ## Install
 
@@ -66,15 +64,14 @@ The snapshot contains:
 - `writtenAt`
 - game metadata
 - local player `x`, `y`, `z`, name, and direction
-- empty `markers` array for now
-- `markerProbe` data for investigating vanilla map symbols
+- exported map markers and notes
+- `markerProbe` data for troubleshooting marker export
 
 ## Current Limitations
 
 - Only the local player is exported.
-- Vanilla map markers are not exported yet.
-- The `markerProbe` block is diagnostic data; it exists to determine whether marker positions are available from Lua.
-- The browser extension does not yet read this file directly. The next project step is the native messaging bridge.
+- The browser extension currently reads the JSON through the Windows native messaging host.
+- The `markerProbe` block is diagnostic data and may change.
 
 ## Troubleshooting
 

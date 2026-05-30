@@ -1,106 +1,80 @@
 # PZMapSync
 
-PZMapSync is a proof-of-concept bridge between a local Project Zomboid game and the Build 42 web map at [b42map.com](https://b42map.com/).
+PZMapSync overlays your live Project Zomboid Build 42 position and map markers on [b42map.com](https://b42map.com/).
 
-The goal is simple: export player/map data from Project Zomboid, then overlay that data on the browser map so you can see your live position and eventually your in-game map markers outside the game.
+It has three pieces:
 
-## Current Status
+- a Project Zomboid mod that writes `PZMapSync_pzmapsync.json`
+- a small native messaging host that lets the browser extension read that file
+- a Chromium/Edge extension that draws the player and marker overlay on b42map
 
-This repo currently contains two early components:
+## Install
 
-- **Browser extension prototype**: overlays mock player and marker data on `b42map.com`.
-- **Project Zomboid mod prototype**: writes local player position to JSON and probes the game's map-marker API.
+### 1. Install the Project Zomboid mod
 
-The browser overlay concept has been validated against the live b42map page. The next major piece is a native messaging bridge so the browser extension can read the real JSON file written by the mod.
-
-## Repository Layout
+Copy:
 
 ```text
-docs/          Project plan and implementation notes
-extension/     Manifest V3 browser extension prototype
-mod/PZMapSync/ Project Zomboid Lua mod
-scripts/       Local development and verification helpers
+mod\PZMapSync
 ```
 
-## Try The Browser Overlay Mock
+to your Zomboid local mods folder:
 
-Load the extension unpacked in Chrome or Chromium:
+```text
+C:\Users\<you>\Zomboid\mods\PZMapSync
+```
 
-1. Open `chrome://extensions`.
-2. Enable Developer Mode.
+Then start Project Zomboid, enable **PZMapSync** in the Mods menu, and add it to your save if you are loading an existing world. Once loaded in-game, the mod writes:
+
+```text
+C:\Users\<you>\Zomboid\Lua\PZMapSync_pzmapsync.json
+```
+
+### 2. Register the browser native host
+
+From the repository root, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-native-host.ps1
+```
+
+This registers `com.pzmapsync.host` for Chrome and Edge so the extension can read the Zomboid JSON file.
+
+### 3. Load the extension
+
+In Edge or Chrome:
+
+1. Open `edge://extensions` or `chrome://extensions`.
+2. Enable **Developer mode**.
 3. Choose **Load unpacked**.
-4. Select the `extension/` directory from this repo.
+4. Select the `extension` folder from this repository.
 5. Open [https://b42map.com/](https://b42map.com/).
 
-To animate the mock player around the map:
-
-```sh
-node scripts/mock-snapshot-writer.js
-```
-
-The extension polls `extension/public/fixtures/mock-snapshot.json` during development, so the mock player should move without a page reload.
-
-If Chrome policy blocks unpacked extensions, use the direct verification helper while Chrome is running with remote debugging on port `9223`:
-
-```sh
-node scripts/stream-mock-to-page.js
-```
-
-## Install The Project Zomboid Mod
-
-Copy `mod/PZMapSync` into your Project Zomboid local mods directory.
-
-Typical locations:
+If everything is connected, the overlay status should say something like:
 
 ```text
-Windows: C:\Users\<you>\Zomboid\mods\PZMapSync
-macOS:   ~/Zomboid/mods/PZMapSync
-Linux:   ~/Zomboid/mods/PZMapSync
+PZMapSync live: 1 player, 16 markers
 ```
 
-On macOS from this repo:
+## Use
 
-```sh
-mkdir -p "$HOME/Zomboid/mods"
-cp -R mod/PZMapSync "$HOME/Zomboid/mods/PZMapSync"
+- Player and marker pins update from your live Zomboid snapshot.
+- Right-click the player pin and choose **Follow** to keep the map centered on that player.
+- Right-click again and choose **Stop following** to disable follow mode.
+
+## Troubleshooting
+
+If the overlay is not live:
+
+- Confirm `C:\Users\<you>\Zomboid\Lua\PZMapSync_pzmapsync.json` exists and is updating.
+- Re-run `scripts\install-native-host.ps1`.
+- Reload the unpacked extension from the browser extensions page.
+- Reload `https://b42map.com/`.
+
+To test the native host directly:
+
+```powershell
+C:\Users\<you>\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\test-native-host.js
 ```
 
-Then enable **PZMapSync** in Project Zomboid's Mods menu and load a save. The mod writes `PZMapSync_pzmapsync.json` using Project Zomboid's Lua file writer.
-
-The installed folder should include both root metadata and the Build 42 version folder:
-
-```text
-Zomboid/mods/PZMapSync/mod.info
-Zomboid/mods/PZMapSync/42.0/mod.info
-Zomboid/mods/PZMapSync/42.0/media/
-```
-
-See [mod/PZMapSync/README.md](mod/PZMapSync/README.md) for more detail.
-
-## Development Checks
-
-JavaScript syntax checks:
-
-```sh
-node --check extension/src/content/content-script.js
-node --check extension/src/content/page-bridge.js
-node --check extension/src/background/service-worker.js
-```
-
-Lua syntax check:
-
-```sh
-luac -p mod/PZMapSync/media/lua/shared/PZMapSync/PZMapSync_Config.lua mod/PZMapSync/media/lua/shared/PZMapSync/PZMapSync_Json.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_Client.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_MapMarkers.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_Writer.lua
-```
-
-## Roadmap
-
-- Confirm the exact on-disk location of `PZMapSync_pzmapsync.json` in-game.
-- Build the native messaging host for browser-to-local-file access.
-- Wire the extension to live mod output instead of mock fixture data.
-- Convert the mod's marker probe into real marker export if vanilla marker coordinates are available from Lua.
-- Add extension popup controls for status, toggles, and troubleshooting.
-
-## Project Notes
-
-The larger implementation plan is in [docs/project-plan.md](docs/project-plan.md).
+Developer notes, mock overlay workflows, and verification helpers live in [docs/development.md](docs/development.md).
