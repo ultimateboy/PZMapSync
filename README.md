@@ -78,3 +78,7 @@ C:\Users\<you>\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin
 ```
 
 Developer notes, mock overlay workflows, and verification helpers live in [docs/development.md](docs/development.md).
+
+## License
+
+PZMapSync is released under the [MIT License](LICENSE).
