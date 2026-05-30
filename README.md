@@ -67,6 +67,14 @@ cp -R mod/PZMapSync "$HOME/Zomboid/mods/PZMapSync"
 
 Then enable **PZMapSync** in Project Zomboid's Mods menu and load a save. The mod writes `PZMapSync_pzmapsync.json` using Project Zomboid's Lua file writer.
 
+The installed folder should include both root metadata and the Build 42 version folder:
+
+```text
+Zomboid/mods/PZMapSync/mod.info
+Zomboid/mods/PZMapSync/42.0/mod.info
+Zomboid/mods/PZMapSync/42.0/media/
+```
+
 See [mod/PZMapSync/README.md](mod/PZMapSync/README.md) for more detail.
 
 ## Development Checks

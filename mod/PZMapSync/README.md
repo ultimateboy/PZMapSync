@@ -80,7 +80,14 @@ The snapshot contains:
 
 If the mod does not appear in the Mods menu:
 
-- Confirm the folder path is exactly `Zomboid/mods/PZMapSync/mod.info`.
+- Confirm the folder paths include both:
+
+```text
+Zomboid/mods/PZMapSync/mod.info
+Zomboid/mods/PZMapSync/42.0/mod.info
+```
+
+Build 42 can use version-specific mod folders, so this mod ships a `42.0/` copy of the Lua files as well as the root metadata.
 - Confirm `mod.info` contains `id=PZMapSync`.
 - Restart Project Zomboid after copying the mod.
 
