@@ -184,7 +184,7 @@ function MapMarkers.probe(nowMs)
     local count = callNumber(symbolsAPI, "getSymbolCount") or 0
     local modificationCount = callNumber(symbolsAPI, "getModificationCount")
     local inspected = {}
-    local inspectCount = math.min(count, 25)
+    local inspectCount = count
 
     for index = 0, inspectCount - 1 do
         local okSymbol, symbol = pcall(function()

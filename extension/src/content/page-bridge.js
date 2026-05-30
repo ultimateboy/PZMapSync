@@ -22,6 +22,156 @@
   let followedPlayerId = window.localStorage.getItem(FOLLOW_PLAYER_STORAGE_KEY) || "local-0";
   let lastFollowAt = 0;
 
+  const SYMBOL_GLYPHS = Object.freeze({
+    anvil: "\u2692",
+    apple: "\u{1F34E}",
+    armor: "\u{1F6E1}\uFE0F",
+    arroweast: "\u2192",
+    arrownorth: "\u2191",
+    arrownortheast: "\u2197",
+    arrownorthwest: "\u2196",
+    arrowsouth: "\u2193",
+    arrowsoutheast: "\u2198",
+    arrowsouthwest: "\u2199",
+    arrowwest: "\u2190",
+    asterisk: "*",
+    axe: "\u{1FA93}",
+    baseball: "\u26BE",
+    bed: "\u{1F6CF}\uFE0F",
+    bird: "\u{1F426}",
+    boat: "\u26F5",
+    bomb: "\u{1F4A3}",
+    book: "\u{1F4D6}",
+    bullets: "\u2022\u2022",
+    burger: "\u{1F354}",
+    checkmark: "\u2713",
+    chicken: "\u{1F414}",
+    circle: "\u25CB",
+    club: "\u2663",
+    columns: "\u{1F3DB}\uFE0F",
+    cow: "\u{1F404}",
+    cross: "\u271A",
+    crossedswords: "\u2694\uFE0F",
+    deer: "\u{1F98C}",
+    diamond: "\u25C6",
+    dollar: "$",
+    dollarsign: "$",
+    door: "\u{1F6AA}",
+    egg: "\u{1F95A}",
+    exclamation: "!",
+    eye: "\u{1F441}\uFE0F",
+    facedead: "\u2620",
+    facehappy: "\u263A",
+    facesad: "\u2639",
+    fire: "\u{1F525}",
+    fish: "\u{1F41F}",
+    flower: "\u273F",
+    fuel: "\u26FD",
+    furnace: "\u{1F525}",
+    garbage: "\u{1F5D1}\uFE0F",
+    gasstation: "\u26FD",
+    gears: "\u2699",
+    gun: "\u{1F52B}",
+    hammer: "\u{1F528}",
+    heart: "\u2665",
+    heartbroken: "\u{1F494}",
+    house: "\u2302",
+    key: "\u{1F511}",
+    knife: "\u{1F52A}",
+    knifefork: "\u{1F374}",
+    ladder: "\u{1FA9C}",
+    leaf: "\u{1F342}",
+    lightbulb: "\u{1F4A1}",
+    lightning: "\u26A1",
+    lock: "\u{1F512}",
+    medcross: "\u271A",
+    mammo1: "\u2022\u2022",
+    mammo2: "\u2022\u2022",
+    mammo3: "\u2022\u2022",
+    massault: "\u{1F52B}",
+    mbasement: "\u25BE",
+    mbbq: "\u{1F525}",
+    mbottle: "\u{1F37E}",
+    mbunker: "\u{1F6E1}\uFE0F",
+    mbus: "\u{1F68C}",
+    mchicken: "\u{1F414}",
+    mcircle: "\u25CB",
+    mcow: "\u{1F404}",
+    mcrossover: "\u{1F697}",
+    mfoodfresh: "\u{1F34E}",
+    mfoodpreserved: "\u{1F96B}",
+    mforge: "\u2692",
+    mforkspoon: "\u{1F374}",
+    mfurnace: "\u{1F525}",
+    mgashelmet: "\u26D1",
+    mgasmask: "\u2623",
+    mgasstation: "\u26FD",
+    mgenerator: "\u26A1",
+    mhelmet: "\u{1FA96}",
+    mmetalbandsaw: "\u2699",
+    mmilitary: "\u2605",
+    mmotorcycle: "\u{1F3CD}\uFE0F",
+    mparking: "P",
+    mpassenger: "\u{1F697}",
+    mpickup: "\u{1F6FB}",
+    mpig: "\u{1F416}",
+    mpistol: "\u{1F52B}",
+    mpropane: "\u{1F6E2}\uFE0F",
+    mrabbit: "\u{1F407}",
+    mrv: "RV",
+    msafepin: "\u2302",
+    msafehouse: "\u2302",
+    msheep: "\u{1F411}",
+    mshotgun: "\u{1F52B}",
+    mskull: "\u2620",
+    msniper: "\u2316",
+    mstove: "\u{1F525}",
+    mtrailer: "\u{1F69A}",
+    mtruck: "\u{1F69A}",
+    mturkey: "\u{1F983}",
+    muknownpin: "?",
+    munknownpin: "?",
+    mvan: "\u{1F690}",
+    mwarningpin: "!",
+    mwater: "\u{1F4A7}",
+    mwaterpump: "\u{1F4A7}",
+    mwell: "\u25CC",
+    mwreck: "\u{1F6FB}",
+    moon: "\u263E",
+    pawprint: "\u{1F43E}",
+    pill: "\u{1F48A}",
+    pig: "\u{1F416}",
+    police: "\u{1F694}",
+    question: "?",
+    rabbit: "\u{1F407}",
+    radiation: "\u2622",
+    raccoon: "\u{1F99D}",
+    rodent: "\u{1F401}",
+    safehouse: "\u2302",
+    sheep: "\u{1F411}",
+    shirt: "\u{1F455}",
+    skull: "\u2620",
+    skyscraper: "\u{1F3D9}\uFE0F",
+    snowflake: "\u2744",
+    spade: "\u2660",
+    star: "\u2605",
+    steeringwheel: "\u{1F697}",
+    sun: "\u2600",
+    target: "\u25CE",
+    tent: "\u26FA",
+    tire: "\u25C9",
+    trap: "\u25B3",
+    tree: "\u{1F332}",
+    triangle: "\u25B3",
+    turkey: "\u{1F983}",
+    uknownpin: "?",
+    vhs: "\u{1F4FC}",
+    waves: "\u224B",
+    wrench: "\u{1F527}",
+    x: "X",
+    z: "Z"
+  });
+
   function getPageState() {
     const pageGlobals = window.g;
     if (!pageGlobals || !pageGlobals.viewer || !pageGlobals.base_map) {
@@ -189,21 +339,19 @@
 
   function markerGlyph(marker) {
     const id = String(marker.symbolId || "").toLowerCase();
+    const modIconId = id.startsWith("m") ? id.slice(1) : id;
+    const mappedGlyph = SYMBOL_GLYPHS[id] || SYMBOL_GLYPHS[modIconId];
 
-    if (id.includes("crossover") || id.includes("car") || id.includes("vehicle")) return "🚗";
-    if (id.includes("truck")) return "🚚";
-    if (id.includes("van")) return "🚐";
-    if (id.includes("bus")) return "🚌";
-    if (id.includes("gas")) return "⛽";
-    if (id.includes("safehouse") || id.includes("house")) return "⌂";
-    if (id.includes("chicken")) return "🐔";
-    if (id.includes("sheep")) return "🐑";
-    if (id.includes("cow")) return "🐄";
-    if (id.includes("pig")) return "🐖";
-    if (id.includes("horse")) return "🐎";
+    if (mappedGlyph) return mappedGlyph;
+    if (id.includes("crossover") || id.includes("car") || id.includes("vehicle")) return "\u{1F697}";
+    if (id.includes("truck")) return "\u{1F69A}";
+    if (id.includes("van")) return "\u{1F690}";
+    if (id.includes("bus")) return "\u{1F68C}";
+    if (id.includes("gas") || id.includes("fuel")) return "\u26FD";
+    if (id.includes("safehouse") || id.includes("house")) return "\u2302";
+    if (id.includes("horse")) return "\u{1F40E}";
     if (id.includes("warning") || id.includes("danger")) return "!";
     if (marker.kind === "text" || marker.type === "text") return "T";
-    if (id === "x") return "X";
     return "M";
   }
 
