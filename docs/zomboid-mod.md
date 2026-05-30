@@ -13,7 +13,7 @@ The output filename is intentionally simple for the first proof-of-concept. It a
 
 ## Install For Local Testing
 
-Copy or symlink:
+Copy:
 
 ```text
 mod/PZMapSync
@@ -21,12 +21,33 @@ mod/PZMapSync
 
 into the Project Zomboid local mods directory.
 
-Typical locations:
+The primary target is Windows:
 
 ```text
 Windows: C:\Users\<you>\Zomboid\mods\PZMapSync
-macOS:   ~/Zomboid/mods/PZMapSync
-Linux:   ~/Zomboid/mods/PZMapSync
+```
+
+From PowerShell in the repository root:
+
+```powershell
+$mods = Join-Path $env:USERPROFILE "Zomboid\mods"
+New-Item -ItemType Directory -Force -Path $mods
+Remove-Item -Recurse -Force (Join-Path $mods "PZMapSync") -ErrorAction SilentlyContinue
+Copy-Item -Recurse "mod\PZMapSync" (Join-Path $mods "PZMapSync")
+```
+
+macOS and Linux use the same folder layout under the home directory:
+
+```text
+macOS/Linux: ~/Zomboid/mods/PZMapSync
+```
+
+From a shell:
+
+```sh
+mkdir -p "$HOME/Zomboid/mods"
+rm -rf "$HOME/Zomboid/mods/PZMapSync"
+cp -R mod/PZMapSync "$HOME/Zomboid/mods/PZMapSync"
 ```
 
 Then enable `PZMapSync` in the game's Mods menu and start a save.

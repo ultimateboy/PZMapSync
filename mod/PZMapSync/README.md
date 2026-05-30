@@ -4,7 +4,7 @@ PZMapSync exports local Project Zomboid player position and map marker data to a
 
 ## Install
 
-Copy this folder:
+Copy this folder from the repository:
 
 ```text
 PZMapSync
@@ -12,24 +12,32 @@ PZMapSync
 
 to your Project Zomboid local mods directory.
 
-Typical locations:
+The most common Windows install path is:
 
 ```text
 Windows: C:\Users\<you>\Zomboid\mods\PZMapSync
-macOS:   ~/Zomboid/mods/PZMapSync
-Linux:   ~/Zomboid/mods/PZMapSync
 ```
 
-From this repository on macOS, you can install with:
+From PowerShell in the repository root, install or update the mod with:
+
+```powershell
+$mods = Join-Path $env:USERPROFILE "Zomboid\mods"
+New-Item -ItemType Directory -Force -Path $mods
+Remove-Item -Recurse -Force (Join-Path $mods "PZMapSync") -ErrorAction SilentlyContinue
+Copy-Item -Recurse "mod\PZMapSync" (Join-Path $mods "PZMapSync")
+```
+
+Other common locations:
+
+```text
+macOS: ~/Zomboid/mods/PZMapSync
+Linux: ~/Zomboid/mods/PZMapSync
+```
+
+On macOS or Linux from the repository root:
 
 ```sh
 mkdir -p "$HOME/Zomboid/mods"
-cp -R mod/PZMapSync "$HOME/Zomboid/mods/PZMapSync"
-```
-
-If you already installed an older copy, remove it first or overwrite it:
-
-```sh
 rm -rf "$HOME/Zomboid/mods/PZMapSync"
 cp -R mod/PZMapSync "$HOME/Zomboid/mods/PZMapSync"
 ```
@@ -80,8 +88,8 @@ If the mod does not appear in the Mods menu:
 - Confirm the folder paths include both:
 
 ```text
-Zomboid/mods/PZMapSync/mod.info
-Zomboid/mods/PZMapSync/42.0/mod.info
+Windows: C:\Users\<you>\Zomboid\mods\PZMapSync\mod.info
+Windows: C:\Users\<you>\Zomboid\mods\PZMapSync\42.0\mod.info
 ```
 
 Build 42 can use version-specific mod folders, so this mod ships a `42.0/` copy of the Lua files as well as the root metadata.
