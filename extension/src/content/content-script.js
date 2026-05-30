@@ -1,12 +1,15 @@
 (function initPZMapSyncContentScript() {
   const BRIDGE_ID = "pzmapsync-page-bridge";
   const SNAPSHOT_EVENT = "PZMapSync:snapshot";
+  const STATUS_EVENT = "PZMapSync:status";
   const READY_EVENT = "PZMapSync:ready";
-  const MOCK_POLL_MS = 250;
+  const LIVE_POLL_MS = 250;
+  const MOCK_POLL_MS = 1000;
 
   let latestSnapshot = null;
   let bridgeReady = false;
   let latestSequence = null;
+  let useMockFallback = false;
 
   function injectBridge() {
     if (document.getElementById(BRIDGE_ID)) {
@@ -31,7 +34,7 @@
   }
 
   function sendSnapshot(snapshot) {
-    if (snapshot.sequence === latestSequence) {
+    if (!snapshot || snapshot.sequence === latestSequence) {
       return;
     }
 
@@ -46,6 +49,12 @@
     }));
   }
 
+  function sendStatus(status) {
+    window.dispatchEvent(new CustomEvent(STATUS_EVENT, {
+      detail: status
+    }));
+  }
+
   window.addEventListener(READY_EVENT, () => {
     bridgeReady = true;
     if (latestSnapshot) {
@@ -55,14 +64,56 @@
 
   injectBridge();
 
+  async function loadLiveSnapshot() {
+    const response = await chrome.runtime.sendMessage({
+      type: "PZMapSync:getSnapshot"
+    });
+
+    if (!response || !response.ok) {
+      throw new Error(response && response.error ? response.error : "Native host did not return a snapshot");
+    }
+
+    return response.snapshot;
+  }
+
+  async function pollLiveSnapshot() {
+    try {
+      const snapshot = await loadLiveSnapshot();
+      useMockFallback = false;
+      sendStatus({
+        mode: "live",
+        ok: true,
+        path: snapshot && snapshot.__sourcePath
+      });
+      sendSnapshot(snapshot);
+    } catch (error) {
+      sendStatus({
+        mode: useMockFallback ? "mock" : "live",
+        ok: false,
+        error: error.message || String(error)
+      });
+      useMockFallback = true;
+      await pollMockSnapshot();
+    }
+  }
+
   async function pollMockSnapshot() {
     try {
+      sendStatus({
+        mode: "mock",
+        ok: true
+      });
       sendSnapshot(await loadMockSnapshot());
     } catch (error) {
       console.error("[PZMapSync] Unable to load mock snapshot", error);
     }
   }
 
-  pollMockSnapshot();
-  window.setInterval(pollMockSnapshot, MOCK_POLL_MS);
+  pollLiveSnapshot();
+  window.setInterval(pollLiveSnapshot, LIVE_POLL_MS);
+  window.setInterval(() => {
+    if (useMockFallback) {
+      pollMockSnapshot();
+    }
+  }, MOCK_POLL_MS);
 })();

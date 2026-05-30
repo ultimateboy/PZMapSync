@@ -3,7 +3,9 @@
   "name": "PZMapSync",
   "version": "0.1.0",
   "description": "Overlay Project Zomboid player and marker sync data on b42map.com.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt9zoB2XfteRlFnWkGD/fvUD4TeU3+HsL5cLAhQoc1JCzhb4MW6F7iyqDHEGS8ooKL5X/HBX3zYusEQBPpcJuAIteZJ1HSi4QbasAxeDlU60hItPl9e99c4mVaeJ1LaNiIoDfOShcyNzNxYpGtKyRQAzOZZUOsxkyHZa2fqeK/TInaBkf7H2R2IdiCrJXa3u4ITjnFJn84ApG0CZUGYRBkzjd1FcJUZzjYDM/CJiycVy+nUlrJlAKIfPqa/R3KBdxfTVEepfZ38lq/qmntXCjC7dXXabhu2jrMIERAfGVNVj2AOaSPJb6lW5vY/1fCG3SmiWcvthvqVXLrEW16T/c0wIDAQAB",
   "permissions": [
+    "nativeMessaging",
     "scripting",
     "tabs"
   ],

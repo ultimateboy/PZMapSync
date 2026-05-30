@@ -6,8 +6,10 @@ if (!expression) {
 }
 
 async function main() {
-  const tabs = await fetch("http://127.0.0.1:9223/json/list").then((response) => response.json());
-  const page = tabs.find((target) => target.type === "page");
+  const debugUrl = process.env.PZMAPSYNC_DEBUG_URL || "http://127.0.0.1:9223";
+  const tabs = await fetch(`${debugUrl}/json/list`).then((response) => response.json());
+  const page = tabs.find((target) => target.type === "page" && target.url.includes("b42map.com")) ||
+    tabs.find((target) => target.type === "page");
   if (!page) {
     throw new Error("No debuggable page target found.");
   }

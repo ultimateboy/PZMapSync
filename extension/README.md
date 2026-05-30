@@ -1,6 +1,6 @@
 # PZMapSync Browser Extension
 
-This is the first browser-side proof of concept. It injects a mock player and mock map markers onto `https://b42map.com/` using `public/fixtures/mock-snapshot.json`.
+This is the browser-side proof of concept. It injects live Project Zomboid player and map marker data onto `https://b42map.com/` using the local JSON snapshot written by the PZMapSync mod. If the native host is unavailable, it falls back to `public/fixtures/mock-snapshot.json`.
 
 ## Load Unpacked
 
@@ -10,6 +10,34 @@ This is the first browser-side proof of concept. It injects a mock player and mo
 4. Choose **Load unpacked**.
 5. Select this `extension/` directory.
 6. Open `https://b42map.com/`.
+
+## Live Snapshot Bridge
+
+On Windows, register the native messaging host before loading the extension:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-native-host.ps1
+```
+
+The native host reads:
+
+```text
+C:\Users\<you>\Zomboid\Lua\PZMapSync_pzmapsync.json
+```
+
+The extension ID is pinned in `manifest.json` so the native host registration stays stable:
+
+```text
+eiocboniaogecljgkoembpgpabaogfoa
+```
+
+To sanity-check the host without a browser:
+
+```powershell
+C:\Users\matt\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\test-native-host.js
+```
+
+When the bridge is working, the overlay status on `b42map.com` should read something like `PZMapSync live: 1 player, 16 markers`.
 
 The content script injects `src/content/page-bridge.js` into the page context because b42map's OpenSeadragon viewer and map metadata live in page-owned JavaScript globals. The bridge converts Project Zomboid world square coordinates into screen pixels using the same formulas as b42map's coordinate module.
 

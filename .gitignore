@@ -1,2 +1,8 @@
 extension-overlay-test.png
+.edge-profile/
+.edge-profile-follow/
+.edge-profile-context/
+.edge-profile-menu-anchor/
+.edge-profile-marker-cleanup/
+.edge-profile-icon-map/
 .DS_Store

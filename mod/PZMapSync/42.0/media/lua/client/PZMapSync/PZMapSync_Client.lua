@@ -98,6 +98,7 @@ end
 
 local function buildSnapshot(player, timestampMs)
     Client.sequence = Client.sequence + 1
+    local markerProbe = PZMapSync.MapMarkers.probe(timestampMs)
 
     return {
         schemaVersion = PZMapSync.Config.SchemaVersion,
@@ -110,8 +111,8 @@ local function buildSnapshot(player, timestampMs)
         players = {
             buildPlayer(player)
         },
-        markers = {},
-        markerProbe = PZMapSync.MapMarkers.probe(timestampMs)
+        markers = PZMapSync.MapMarkers.getMarkers(timestampMs),
+        markerProbe = markerProbe
     }
 end
 

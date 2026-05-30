@@ -1,14 +1,26 @@
 (function initPZMapSyncPageBridge() {
   const ROOT_ID = "pzmapsync-overlay-root";
   const STATUS_ID = "pzmapsync-status";
+  const MENU_ID = "pzmapsync-context-menu";
   const SNAPSHOT_EVENT = "PZMapSync:snapshot";
+  const STATUS_EVENT = "PZMapSync:status";
   const READY_EVENT = "PZMapSync:ready";
+  const FOLLOW_STORAGE_KEY = "PZMapSync:follow";
+  const FOLLOW_PLAYER_STORAGE_KEY = "PZMapSync:followPlayerId";
 
   let snapshot = null;
+  let sourceStatus = {
+    mode: "initializing",
+    ok: false
+  };
   let root = null;
   let status = null;
+  let contextMenu = null;
   let rafId = 0;
   let lastError = "";
+  let followEnabled = window.localStorage.getItem(FOLLOW_STORAGE_KEY) === "true";
+  let followedPlayerId = window.localStorage.getItem(FOLLOW_PLAYER_STORAGE_KEY) || "local-0";
+  let lastFollowAt = 0;
 
   function getPageState() {
     const pageGlobals = window.g;
@@ -48,8 +60,16 @@
     if (!status) {
       status = document.createElement("div");
       status.id = STATUS_ID;
-      status.textContent = "PZMapSync mock";
+      status.textContent = "PZMapSync initializing";
       root.appendChild(status);
+    }
+
+    if (!contextMenu) {
+      contextMenu = document.createElement("div");
+      contextMenu.id = MENU_ID;
+      contextMenu.hidden = true;
+      contextMenu.setAttribute("role", "menu");
+      root.appendChild(contextMenu);
     }
 
     return root;
@@ -66,25 +86,133 @@
     ];
   }
 
-  function squareToScreen(point, state) {
+  function squareToViewportPoint(point, state) {
     const map = state.baseMap;
     const layer = Number.isFinite(point.z) ? point.z : state.currentLayer;
     const squareToMap = map.type === "top" ? fromTopSquare : fromIsoSquare;
     const coords = squareToMap(map.sqr, point.x, point.y, layer);
     const imageX = (map.x0 + coords[0]) / map.scale;
     const imageY = (map.y0 + coords[1]) / map.scale;
-    const viewportPoint = state.tiledImage.imageToViewportCoordinates(imageX, imageY);
+    return state.tiledImage.imageToViewportCoordinates(imageX, imageY);
+  }
+
+  function squareToScreen(point, state) {
+    const viewportPoint = squareToViewportPoint(point, state);
 
     return state.viewer.viewport.pixelFromPoint(viewportPoint, true);
   }
 
+  function syncPlayerOptions(players) {
+    const nextIds = new Set(players.map((player) => player.id || "local-0"));
+
+    if (!nextIds.has(followedPlayerId) && players[0]) {
+      followedPlayerId = players[0].id || "local-0";
+      window.localStorage.setItem(FOLLOW_PLAYER_STORAGE_KEY, followedPlayerId);
+    }
+  }
+
+  function maybeFollowPlayer(players, state) {
+    if (!followEnabled || !players.length) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastFollowAt < 200) {
+      return;
+    }
+
+    const player = players.find((item) => (item.id || "local-0") === followedPlayerId) || players[0];
+    try {
+      const viewportPoint = squareToViewportPoint(player, state);
+      state.viewer.viewport.panTo(viewportPoint, false);
+      lastFollowAt = now;
+    } catch (error) {
+      lastError = error.message || String(error);
+    }
+  }
+
+  function hideContextMenu() {
+    if (contextMenu) {
+      contextMenu.hidden = true;
+      contextMenu.replaceChildren();
+    }
+  }
+
+  function setFollow(player) {
+    followedPlayerId = player.id || "local-0";
+    followEnabled = true;
+    window.localStorage.setItem(FOLLOW_PLAYER_STORAGE_KEY, followedPlayerId);
+    window.localStorage.setItem(FOLLOW_STORAGE_KEY, "true");
+    hideContextMenu();
+    requestRender();
+  }
+
+  function clearFollow() {
+    followEnabled = false;
+    window.localStorage.setItem(FOLLOW_STORAGE_KEY, "false");
+    hideContextMenu();
+    requestRender();
+  }
+
+  function showPlayerContextMenu(event, player) {
+    ensureRoot();
+    if (!contextMenu) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const playerId = player.id || "local-0";
+    const isFollowingThisPlayer = followEnabled && followedPlayerId === playerId;
+    const action = document.createElement("button");
+    action.type = "button";
+    action.textContent = isFollowingThisPlayer ? "Stop following" : `Follow ${player.name || "player"}`;
+    action.addEventListener("click", () => {
+      if (isFollowingThisPlayer) {
+        clearFollow();
+      } else {
+        setFollow(player);
+      }
+    });
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const menuX = rect.left - rootRect.left + 18;
+    const menuY = rect.top - rootRect.top + Math.max(0, rect.height / 2 - 14);
+
+    contextMenu.replaceChildren(action);
+    contextMenu.hidden = false;
+    contextMenu.style.left = `${menuX}px`;
+    contextMenu.style.top = `${menuY}px`;
+  }
+
   function markerGlyph(marker) {
     const id = String(marker.symbolId || "").toLowerCase();
-    if (id.includes("house")) return "H";
-    if (id.includes("car") || id.includes("vehicle")) return "V";
+
+    if (id.includes("crossover") || id.includes("car") || id.includes("vehicle")) return "🚗";
+    if (id.includes("truck")) return "🚚";
+    if (id.includes("van")) return "🚐";
+    if (id.includes("bus")) return "🚌";
+    if (id.includes("gas")) return "⛽";
+    if (id.includes("safehouse") || id.includes("house")) return "⌂";
+    if (id.includes("chicken")) return "🐔";
+    if (id.includes("sheep")) return "🐑";
+    if (id.includes("cow")) return "🐄";
+    if (id.includes("pig")) return "🐖";
+    if (id.includes("horse")) return "🐎";
     if (id.includes("warning") || id.includes("danger")) return "!";
-    if (marker.kind === "text") return "T";
+    if (marker.kind === "text" || marker.type === "text") return "T";
+    if (id === "x") return "X";
     return "M";
+  }
+
+  function markerLabel(marker) {
+    if (marker.type === "text" || marker.kind === "text") {
+      return marker.text || marker.label || "";
+    }
+
+    return "";
   }
 
   function makeNode(item, type) {
@@ -99,10 +227,36 @@
 
     const label = document.createElement("div");
     label.className = "pzmapsync-pin-label";
-    label.textContent = type === "player" ? item.name || "Player" : item.label || item.symbolId || "Marker";
+    label.textContent = type === "player" ? item.name || "Player" : markerLabel(item);
+    label.hidden = !label.textContent;
 
     node.append(dot, label);
     return node;
+  }
+
+  function updateNode(node, item, type) {
+    node.oncontextmenu = null;
+    node.dataset.following = "false";
+
+    const dot = node.querySelector(".pzmapsync-pin-dot");
+    const label = node.querySelector(".pzmapsync-pin-label");
+
+    if (dot && type === "marker") {
+      dot.textContent = markerGlyph(item);
+      dot.style.setProperty("--pzmapsync-color", item.color || "#62a0ea");
+    }
+
+    if (label) {
+      label.textContent = type === "player" ? item.name || "Player" : markerLabel(item);
+      label.hidden = !label.textContent;
+    }
+
+    if (type === "player") {
+      node.oncontextmenu = (event) => showPlayerContextMenu(event, item);
+      if (followEnabled && (item.id || "local-0") === followedPlayerId) {
+        node.dataset.following = "true";
+      }
+    }
   }
 
   function renderSnapshot(nextSnapshot) {
@@ -140,8 +294,12 @@
       return;
     }
 
+    const players = snapshot.players || [];
+    syncPlayerOptions(players);
+    maybeFollowPlayer(players, state);
+
     const items = [
-      ...(snapshot.players || []).map((item) => ({ item, type: "player" })),
+      ...players.map((item) => ({ item, type: "player" })),
       ...(snapshot.markers || []).filter((item) => item.visible !== false).map((item) => ({ item, type: "marker" }))
     ];
 
@@ -155,6 +313,7 @@
         node = makeNode(entry.item, entry.type);
         overlayRoot.appendChild(node);
       }
+      updateNode(node, entry.item, entry.type);
 
       try {
         const screen = squareToScreen(entry.item, state);
@@ -173,7 +332,8 @@
     }
 
     const count = `${snapshot.players?.length || 0} player, ${snapshot.markers?.length || 0} markers`;
-    updateStatus(`PZMapSync mock: ${count}`, Boolean(lastError));
+    const mode = sourceStatus.mode === "live" ? "live" : "mock";
+    updateStatus(`PZMapSync ${mode}: ${count}`, Boolean(lastError) || sourceStatus.ok === false);
     requestRender();
   }
 
@@ -187,6 +347,20 @@
   window.addEventListener(SNAPSHOT_EVENT, (event) => {
     renderSnapshot(event.detail);
   });
+
+  window.addEventListener(STATUS_EVENT, (event) => {
+    sourceStatus = event.detail || sourceStatus;
+    if (!snapshot && sourceStatus.error) {
+      updateStatus(`PZMapSync: ${sourceStatus.error}`, true);
+    }
+  });
+
+  window.addEventListener("click", hideContextMenu, true);
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      hideContextMenu();
+    }
+  }, true);
 
   const waitForMap = window.setInterval(() => {
     ensureRoot();
