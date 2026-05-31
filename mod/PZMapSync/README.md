@@ -1,6 +1,6 @@
 # PZMapSync Project Zomboid Mod
 
-PZMapSync exports local Project Zomboid player position and map marker data to a JSON file for the PZMapSync browser map overlay.
+PZMapSync exports Project Zomboid player position and map marker data to a JSON file for the PZMapSync browser map overlay.
 
 ## Install
 
@@ -72,12 +72,14 @@ The snapshot contains:
 - `writtenAt`
 - game metadata
 - local player `x`, `y`, `z`, name, and direction
+- all online players in multiplayer when PZMapSync is enabled server-side
 - exported map markers and notes
 - `markerProbe` data for troubleshooting marker export
 
 ## Current Limitations
 
-- Only the local player is exported.
+- All-player export is off by default and requires a server admin to enable **PZMapSync > Broadcast all online players** on the multiplayer server/save.
+- Server admins can tune all-player broadcast frequency with **PZMapSync > All-player sync interval**.
 - The browser extension currently reads the JSON through the Windows native messaging host.
 - The `markerProbe` block is diagnostic data and may change.
 
@@ -85,14 +87,12 @@ The snapshot contains:
 
 If the mod does not appear in the Mods menu:
 
-- Confirm the folder paths include both:
+- Confirm the folder path includes:
 
 ```text
 Windows: C:\Users\<you>\Zomboid\mods\PZMapSync\mod.info
-Windows: C:\Users\<you>\Zomboid\mods\PZMapSync\42.0\mod.info
 ```
 
-Build 42 can use version-specific mod folders, so this mod ships a `42.0/` copy of the Lua files as well as the root metadata.
 - Confirm `mod.info` contains `id=PZMapSync`.
 - Restart Project Zomboid after copying the mod.
 
@@ -109,5 +109,5 @@ If Project Zomboid reports a Lua error:
 - Run a local syntax check from the repository:
 
 ```sh
-luac -p mod/PZMapSync/media/lua/shared/PZMapSync/PZMapSync_Config.lua mod/PZMapSync/media/lua/shared/PZMapSync/PZMapSync_Json.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_Client.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_MapMarkers.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_Writer.lua
+luac -p mod/PZMapSync/42.0/media/lua/shared/PZMapSync/PZMapSync_Config.lua mod/PZMapSync/42.0/media/lua/shared/PZMapSync/PZMapSync_Json.lua mod/PZMapSync/42.0/media/lua/client/PZMapSync/PZMapSync_Client.lua mod/PZMapSync/42.0/media/lua/client/PZMapSync/PZMapSync_MapMarkers.lua mod/PZMapSync/42.0/media/lua/client/PZMapSync/PZMapSync_Writer.lua
 ```

@@ -10,7 +10,7 @@ It has three pieces:
 
 - a Project Zomboid mod that writes `PZMapSync_pzmapsync.json`
 - a small native messaging host that lets the browser extension read that file
-- a Chromium/Edge extension that draws the player and marker overlay on b42map
+- a Chromium/Edge extension that draws player and marker overlays on b42map
 
 ## Install
 
@@ -119,12 +119,14 @@ In Edge or Chrome:
 If everything is connected, the overlay status should say something like:
 
 ```text
-PZMapSync live: 1 player, 16 markers
+PZMapSync live: 2 players, 16 markers
 ```
 
 ## Use
 
 - Player and marker pins update from your live Zomboid snapshot.
+- In multiplayer, server admins can opt in to broadcasting all online player positions with **PZMapSync > Broadcast all online players**. This allows the browser overlay to show far-away online players, similar to all-player map mods.
+- The all-player broadcast is off by default and its frequency is controlled with **PZMapSync > All-player sync interval**.
 - Right-click the player pin and choose **Follow** to keep the map centered on that player.
 - Right-click again and choose **Stop following** to disable follow mode.
 

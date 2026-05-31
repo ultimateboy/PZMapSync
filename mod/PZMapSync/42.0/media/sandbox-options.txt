@@ -1,0 +1,28 @@
+VERSION = 1,
+
+option PZMapSync.EnableAllPlayersBroadcast
+{
+    type = boolean,
+    default = false,
+    page = PZMapSync,
+    translation = PZMapSync_EnableAllPlayersBroadcast,
+}
+
+option PZMapSync.EnableAdminAllPlayersBroadcast
+{
+    type = boolean,
+    default = true,
+    page = PZMapSync,
+    translation = PZMapSync_EnableAdminAllPlayersBroadcast,
+}
+
+option PZMapSync.AllPlayersBroadcastIntervalSeconds
+{
+    type = integer,
+    default = 1,
+    min = 1,
+    max = 60,
+    step = 1,
+    page = PZMapSync,
+    translation = PZMapSync_AllPlayersBroadcastIntervalSeconds,
+}

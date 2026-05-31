@@ -63,6 +63,112 @@
   outline: none;
 }
 
+#pzmapsync-sidebar-controls {
+  margin: 12px 14px;
+  padding: 10px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f4f4f4;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.pzmapsync-controls-title {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pzmapsync-controls-count {
+  flex: none;
+  color: #b9c7d9;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pzmapsync-toggle {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+}
+
+.pzmapsync-toggle input {
+  width: 14px;
+  height: 14px;
+  accent-color: #6aa8ff;
+}
+
+.pzmapsync-player-search,
+.pzmapsync-player-list {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: #333333;
+  color: #f4f4f4;
+  font: inherit;
+}
+
+.pzmapsync-player-search {
+  min-height: 28px;
+  margin-top: 8px;
+  padding: 0 7px;
+}
+
+.pzmapsync-player-list {
+  height: 104px;
+  margin-top: 6px;
+  padding: 3px;
+}
+
+.pzmapsync-player-list option {
+  padding: 3px;
+}
+
+.pzmapsync-selected-player {
+  min-height: 28px;
+  margin-top: 6px;
+  padding: 5px 6px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #dbe6f4;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.pzmapsync-player-actions {
+  margin-top: 7px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.pzmapsync-player-actions button {
+  min-height: 28px;
+  border: 0;
+  border-radius: 4px;
+  background: #4f7ed7;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pzmapsync-player-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .pzmapsync-pin {
   position: absolute;
   left: 0;
@@ -102,7 +208,7 @@
   width: 28px;
   height: 28px;
   border-color: #111111;
-  background: #ff7b3d;
+  background: var(--pzmapsync-color);
   color: #111111;
 }
 

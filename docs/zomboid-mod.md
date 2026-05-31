@@ -7,6 +7,8 @@ The first mod implementation lives in `mod/PZMapSync`.
 - Registers a client-side `Events.OnPlayerUpdate` handler.
 - Writes a throttled JSON snapshot to `PZMapSync_pzmapsync.json`.
 - Exports local player position as `x`, `y`, `z`, name, direction, timestamp, and sequence.
+- Can export all online players in multiplayer when a server admin opts in. The server samples `getOnlinePlayers()` and broadcasts a compact player list to each client.
+- Adds server sandbox options, `PZMapSync.EnableAllPlayersBroadcast` and `PZMapSync.AllPlayersBroadcastIntervalSeconds`, so admins can explicitly enable all-player location broadcasts and tune their frequency.
 - Includes a `markerProbe` section that inspects the vanilla map-symbol API when available.
 
 The output filename is intentionally simple for the first proof-of-concept. It avoids relying on nested directory creation from Project Zomboid's Lua file writer. Once the exact disk location is confirmed in-game, the browser/native bridge can be pointed at that file.

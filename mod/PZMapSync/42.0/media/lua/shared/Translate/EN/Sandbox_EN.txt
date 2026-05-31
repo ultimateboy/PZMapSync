@@ -1,0 +1,12 @@
+Sandbox_EN = {
+    Sandbox_PZMapSync = "PZMapSync",
+
+    Sandbox_PZMapSync_EnableAllPlayersBroadcast = "Broadcast all online players",
+    Sandbox_PZMapSync_EnableAllPlayersBroadcast_tooltip = "Opt-in setting. When enabled, the server sends all online player positions to connected PZMapSync clients so the browser overlay can show far-away players. Leave disabled if your server does not want to expose all player locations.",
+
+    Sandbox_PZMapSync_EnableAdminAllPlayersBroadcast = "Broadcast all players to admins",
+    Sandbox_PZMapSync_EnableAdminAllPlayersBroadcast_tooltip = "When enabled, admins receive all online player positions for the browser overlay. This is enabled by default so admins can verify server state without exposing all locations to regular clients.",
+
+    Sandbox_PZMapSync_AllPlayersBroadcastIntervalSeconds = "All-player sync interval",
+    Sandbox_PZMapSync_AllPlayersBroadcastIntervalSeconds_tooltip = "How often, in seconds, the server sends all online player positions to connected PZMapSync clients. Lower values update faster but send more network traffic.",
+}

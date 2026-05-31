@@ -2,11 +2,15 @@
   const ROOT_ID = "pzmapsync-overlay-root";
   const STATUS_ID = "pzmapsync-status";
   const MENU_ID = "pzmapsync-context-menu";
+  const CONTROLS_ID = "pzmapsync-sidebar-controls";
   const SNAPSHOT_EVENT = "PZMapSync:snapshot";
   const STATUS_EVENT = "PZMapSync:status";
   const READY_EVENT = "PZMapSync:ready";
   const FOLLOW_STORAGE_KEY = "PZMapSync:follow";
   const FOLLOW_PLAYER_STORAGE_KEY = "PZMapSync:followPlayerId";
+  const SHOW_PLAYERS_STORAGE_KEY = "PZMapSync:showPlayers";
+  const SHOW_MARKERS_STORAGE_KEY = "PZMapSync:showMarkers";
+  const PLAYER_SEARCH_STORAGE_KEY = "PZMapSync:playerSearch";
 
   let snapshot = null;
   let sourceStatus = {
@@ -16,10 +20,14 @@
   let root = null;
   let status = null;
   let contextMenu = null;
+  let controls = null;
   let rafId = 0;
   let lastError = "";
   let followEnabled = window.localStorage.getItem(FOLLOW_STORAGE_KEY) === "true";
   let followedPlayerId = window.localStorage.getItem(FOLLOW_PLAYER_STORAGE_KEY) || "local-0";
+  let showPlayers = window.localStorage.getItem(SHOW_PLAYERS_STORAGE_KEY) !== "false";
+  let showMarkers = window.localStorage.getItem(SHOW_MARKERS_STORAGE_KEY) !== "false";
+  let playerSearch = window.localStorage.getItem(PLAYER_SEARCH_STORAGE_KEY) || "";
   let lastFollowAt = 0;
 
   const SYMBOL_GLYPHS = Object.freeze({
@@ -194,6 +202,20 @@
     };
   }
 
+  function findSidebar() {
+    const direct = document.querySelector("#sidebar, .sidebar, .map-sidebar, .leaflet-sidebar");
+    if (direct) {
+      return direct;
+    }
+
+    const candidates = Array.from(document.querySelectorAll("aside, nav, section, div"));
+    return candidates.find((element) => {
+      const rect = element.getBoundingClientRect();
+      const text = element.textContent || "";
+      return rect.left <= 4 && rect.width >= 160 && rect.width <= 280 && text.includes("B42 Map") && text.includes("POIs");
+    }) || null;
+  }
+
   function ensureRoot() {
     const mapContainer = document.querySelector(".map-container") || document.getElementById("map_div");
     if (!mapContainer) {
@@ -225,6 +247,82 @@
     return root;
   }
 
+  function ensureControls() {
+    const sidebar = findSidebar();
+    if (!sidebar) {
+      return null;
+    }
+
+    if (controls && controls.isConnected) {
+      return controls;
+    }
+
+    controls = document.createElement("section");
+    controls.id = CONTROLS_ID;
+    controls.innerHTML = `
+      <div class="pzmapsync-controls-title">
+        <span>PZMapSync</span>
+        <span class="pzmapsync-controls-count" data-role="player-count">0 players</span>
+      </div>
+      <label class="pzmapsync-toggle"><input type="checkbox" data-role="show-players"> <span>Show players</span></label>
+      <label class="pzmapsync-toggle"><input type="checkbox" data-role="show-markers"> <span>Show map markings</span></label>
+      <input class="pzmapsync-player-search" type="search" data-role="player-search" placeholder="Search players">
+      <select class="pzmapsync-player-list" data-role="player-list" size="5"></select>
+      <div class="pzmapsync-selected-player" data-role="selected-player"></div>
+      <div class="pzmapsync-player-actions">
+        <button type="button" data-role="jump-player">Jump</button>
+        <button type="button" data-role="follow-player">Follow</button>
+      </div>
+    `;
+
+    controls.querySelector('[data-role="show-players"]').addEventListener("change", (event) => {
+      showPlayers = event.currentTarget.checked;
+      window.localStorage.setItem(SHOW_PLAYERS_STORAGE_KEY, String(showPlayers));
+      requestRender();
+    });
+
+    controls.querySelector('[data-role="show-markers"]').addEventListener("change", (event) => {
+      showMarkers = event.currentTarget.checked;
+      window.localStorage.setItem(SHOW_MARKERS_STORAGE_KEY, String(showMarkers));
+      requestRender();
+    });
+
+    controls.querySelector('[data-role="player-search"]').addEventListener("input", (event) => {
+      playerSearch = event.currentTarget.value;
+      window.localStorage.setItem(PLAYER_SEARCH_STORAGE_KEY, playerSearch);
+      updateControls(snapshot?.players || []);
+    });
+
+    controls.querySelector('[data-role="player-list"]').addEventListener("change", (event) => {
+      if (event.currentTarget.value) {
+        followedPlayerId = event.currentTarget.value;
+        window.localStorage.setItem(FOLLOW_PLAYER_STORAGE_KEY, followedPlayerId);
+        updateControls(snapshot?.players || []);
+      }
+    });
+
+    controls.querySelector('[data-role="player-list"]').addEventListener("dblclick", () => {
+      jumpToPlayer(followedPlayerId);
+    });
+
+    controls.querySelector('[data-role="jump-player"]').addEventListener("click", () => {
+      jumpToPlayer(followedPlayerId);
+    });
+
+    controls.querySelector('[data-role="follow-player"]').addEventListener("click", () => {
+      const player = (snapshot?.players || []).find((item) => (item.id || "local-0") === followedPlayerId);
+      const isFollowingSelected = followEnabled && player && (player.id || "local-0") === followedPlayerId;
+      if (isFollowingSelected) {
+        clearFollow();
+      } else if (player) {
+        setFollow(player);
+      }
+    });
+
+    sidebar.appendChild(controls);
+    return controls;
+  }
+
   function fromTopSquare(step, sx, sy) {
     return [sx * step, sy * step];
   }
@@ -252,6 +350,10 @@
     return state.viewer.viewport.pixelFromPoint(viewportPoint, true);
   }
 
+  function selectedPlayer(players) {
+    return players.find((item) => (item.id || "local-0") === followedPlayerId) || players[0] || null;
+  }
+
   function syncPlayerOptions(players) {
     const nextIds = new Set(players.map((player) => player.id || "local-0"));
 
@@ -259,6 +361,88 @@
       followedPlayerId = players[0].id || "local-0";
       window.localStorage.setItem(FOLLOW_PLAYER_STORAGE_KEY, followedPlayerId);
     }
+  }
+
+  function jumpToPlayer(playerId) {
+    const state = getPageState();
+    const player = (snapshot?.players || []).find((item) => (item.id || "local-0") === playerId);
+    if (!state || !player) {
+      return;
+    }
+
+    try {
+      state.viewer.viewport.panTo(squareToViewportPoint(player, state), false);
+    } catch (error) {
+      lastError = error.message || String(error);
+    }
+  }
+
+  function updateControls(players) {
+    if (!ensureControls()) {
+      return;
+    }
+
+    const showPlayersInput = controls.querySelector('[data-role="show-players"]');
+    const showMarkersInput = controls.querySelector('[data-role="show-markers"]');
+    const playerCount = controls.querySelector('[data-role="player-count"]');
+    const searchInput = controls.querySelector('[data-role="player-search"]');
+    const list = controls.querySelector('[data-role="player-list"]');
+    const selectedPlayerLabel = controls.querySelector('[data-role="selected-player"]');
+    const jumpButton = controls.querySelector('[data-role="jump-player"]');
+    const followButton = controls.querySelector('[data-role="follow-player"]');
+    const query = playerSearch.trim().toLowerCase();
+    const filteredPlayers = players.filter((player) => {
+      const id = String(player.id || "");
+      const name = String(player.name || "");
+      const username = String(player.username || "");
+      return !query || `${id} ${name} ${username}`.toLowerCase().includes(query);
+    });
+    let selected = selectedPlayer(players);
+    const selectedId = selected && (selected.id || "local-0");
+    const selectedMatchesFilter = filteredPlayers.some((player) => (player.id || "local-0") === selectedId);
+    if (query && filteredPlayers.length && !selectedMatchesFilter) {
+      selected = filteredPlayers[0];
+      followedPlayerId = selected.id || "local-0";
+      window.localStorage.setItem(FOLLOW_PLAYER_STORAGE_KEY, followedPlayerId);
+    }
+
+    showPlayersInput.checked = showPlayers;
+    showMarkersInput.checked = showMarkers;
+    playerCount.textContent = countLabel(players.length, "player", "players");
+    searchInput.value = playerSearch;
+    list.replaceChildren();
+
+    if (filteredPlayers.length) {
+      for (const player of filteredPlayers) {
+        const id = player.id || "local-0";
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = player.name || player.username || "Player";
+        option.selected = selected && (selected.id || "local-0") === id;
+        list.appendChild(option);
+      }
+    } else {
+      const option = document.createElement("option");
+      option.textContent = players.length ? "No matching players" : "No players";
+      option.disabled = true;
+      list.appendChild(option);
+    }
+
+    const hasSelectedPlayer = Boolean(selected);
+    const currentSelectedId = selected && (selected.id || "local-0");
+    const isFollowingSelected = followEnabled && currentSelectedId === followedPlayerId;
+    if (selected) {
+      const source = selected.localPlayer === false ? "remote" : "local";
+      const coords = Number.isFinite(selected.x) && Number.isFinite(selected.y)
+        ? `${Math.floor(selected.x)}, ${Math.floor(selected.y)}`
+        : "";
+      selectedPlayerLabel.textContent = `${followEnabled && isFollowingSelected ? "Following" : "Selected"}: ${selected.name || selected.username || "Player"}${coords ? ` (${coords})` : ""} - ${source}`;
+    } else {
+      selectedPlayerLabel.textContent = "Select a player";
+    }
+    jumpButton.disabled = !hasSelectedPlayer;
+    followButton.disabled = !hasSelectedPlayer;
+    followButton.textContent = isFollowingSelected ? "Stop" : "Follow";
   }
 
   function maybeFollowPlayer(players, state) {
@@ -271,7 +455,11 @@
       return;
     }
 
-    const player = players.find((item) => (item.id || "local-0") === followedPlayerId) || players[0];
+    const player = selectedPlayer(players);
+    if (!player) {
+      return;
+    }
+
     try {
       const viewportPoint = squareToViewportPoint(player, state);
       state.viewer.viewport.panTo(viewportPoint, false);
@@ -294,6 +482,7 @@
     window.localStorage.setItem(FOLLOW_PLAYER_STORAGE_KEY, followedPlayerId);
     window.localStorage.setItem(FOLLOW_STORAGE_KEY, "true");
     hideContextMenu();
+    updateControls(snapshot?.players || []);
     requestRender();
   }
 
@@ -301,6 +490,7 @@
     followEnabled = false;
     window.localStorage.setItem(FOLLOW_STORAGE_KEY, "false");
     hideContextMenu();
+    updateControls(snapshot?.players || []);
     requestRender();
   }
 
@@ -363,6 +553,18 @@
     return "";
   }
 
+  function countLabel(count, singular, plural) {
+    return `${count} ${count === 1 ? singular : plural}`;
+  }
+
+  function playerColor(player) {
+    if (player.color) {
+      return player.color;
+    }
+
+    return player.localPlayer === false ? "#6aa8ff" : "#ff7b3d";
+  }
+
   function makeNode(item, type) {
     const node = document.createElement("div");
     node.className = `pzmapsync-pin pzmapsync-${type}`;
@@ -371,7 +573,7 @@
     const dot = document.createElement("div");
     dot.className = "pzmapsync-pin-dot";
     dot.textContent = type === "player" ? "P" : markerGlyph(item);
-    dot.style.setProperty("--pzmapsync-color", item.color || (type === "player" ? "#ff7b3d" : "#62a0ea"));
+    dot.style.setProperty("--pzmapsync-color", type === "player" ? playerColor(item) : item.color || "#62a0ea");
 
     const label = document.createElement("div");
     label.className = "pzmapsync-pin-label";
@@ -392,6 +594,10 @@
     if (dot && type === "marker") {
       dot.textContent = markerGlyph(item);
       dot.style.setProperty("--pzmapsync-color", item.color || "#62a0ea");
+    }
+
+    if (dot && type === "player") {
+      dot.style.setProperty("--pzmapsync-color", playerColor(item));
     }
 
     if (label) {
@@ -444,11 +650,14 @@
 
     const players = snapshot.players || [];
     syncPlayerOptions(players);
+    updateControls(players);
     maybeFollowPlayer(players, state);
 
+    const visiblePlayers = showPlayers ? players : [];
+    const visibleMarkers = showMarkers ? (snapshot.markers || []).filter((item) => item.visible !== false) : [];
     const items = [
-      ...players.map((item) => ({ item, type: "player" })),
-      ...(snapshot.markers || []).filter((item) => item.visible !== false).map((item) => ({ item, type: "marker" }))
+      ...visiblePlayers.map((item) => ({ item, type: "player" })),
+      ...visibleMarkers.map((item) => ({ item, type: "marker" }))
     ];
 
     const expectedIds = new Set();
@@ -479,7 +688,7 @@
       }
     }
 
-    const count = `${snapshot.players?.length || 0} player, ${snapshot.markers?.length || 0} markers`;
+    const count = `${countLabel(snapshot.players?.length || 0, "player", "players")}, ${countLabel(snapshot.markers?.length || 0, "marker", "markers")}`;
     const mode = sourceStatus.mode === "live" ? "live" : "mock";
     updateStatus(`PZMapSync ${mode}: ${count}`, Boolean(lastError) || sourceStatus.ok === false);
     requestRender();

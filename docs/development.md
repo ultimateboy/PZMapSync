@@ -77,12 +77,40 @@ node scripts/stream-mock-to-page.js
 
 Set `PZMAPSYNC_SNAPSHOT` to stream a different JSON file.
 
+## Fast Local Mod Install
+
+For quick mod development on Windows, replace the copied local mod install with a junction to this repository:
+
+```powershell
+$repoMod = (Resolve-Path "mod\PZMapSync").Path
+$modsRoot = Join-Path $env:USERPROFILE "Zomboid\mods"
+$linkPath = Join-Path $modsRoot "PZMapSync"
+
+New-Item -ItemType Directory -Force -Path $modsRoot | Out-Null
+
+if (Test-Path $linkPath) {
+    $item = Get-Item -LiteralPath $linkPath -Force
+    if ($item.LinkType -eq "Junction" -or $item.LinkType -eq "SymbolicLink") {
+        Remove-Item -LiteralPath $linkPath -Force
+    } else {
+        $backup = Join-Path $modsRoot ("PZMapSync.backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+        Move-Item -LiteralPath $linkPath -Destination $backup
+        Write-Host "Backed up existing install to $backup"
+    }
+}
+
+New-Item -ItemType Junction -Path $linkPath -Target $repoMod | Out-Null
+Get-Item -LiteralPath $linkPath -Force | Select-Object FullName,LinkType,Target
+```
+
+After this, edits under `mod\PZMapSync` are immediately visible to Project Zomboid. Restart or reload the save when Lua files or sandbox options change.
+
 ## Lua Syntax Check
 
 If `luac` is available:
 
 ```sh
-luac -p mod/PZMapSync/media/lua/shared/PZMapSync/PZMapSync_Config.lua mod/PZMapSync/media/lua/shared/PZMapSync/PZMapSync_Json.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_Client.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_MapMarkers.lua mod/PZMapSync/media/lua/client/PZMapSync/PZMapSync_Writer.lua
+luac -p mod/PZMapSync/42.0/media/lua/shared/PZMapSync/PZMapSync_Config.lua mod/PZMapSync/42.0/media/lua/shared/PZMapSync/PZMapSync_Json.lua mod/PZMapSync/42.0/media/lua/client/PZMapSync/PZMapSync_Client.lua mod/PZMapSync/42.0/media/lua/client/PZMapSync/PZMapSync_MapMarkers.lua mod/PZMapSync/42.0/media/lua/client/PZMapSync/PZMapSync_Writer.lua
 ```
 
 ## Browser Internals
